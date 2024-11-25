@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBin - Waste Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        header {
+            background-color: #00796b;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            border-bottom: 3px solid #004d40;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #004d40;
+            padding: 12px 0;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            margin: 0 20px;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #80cbc4;
+        }
+
+        .container {
+            width: 90%;
+            margin: 40px auto;
+        }
+
+        .hero {
+            text-align: center;
+            background-color: #e0f2f1;
+            border-radius: 10px;
+            padding: 40px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .hero h2 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00796b;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        .hero button {
+            padding: 15px 30px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .hero button:hover {
+            background-color: #004d40;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #004d40;
+            color: white;
+            margin-top: 50px;
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            display: flex;
+            flex-direction: row;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 90%;
+        }
+
+        #map {
+            height: 400px;
+            width: 65%;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        #dustbin-list {
+            width: 35%;
+            overflow-y: auto;
+            max-height: 400px;
+            margin-left: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        #dustbin-list li {
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #fff;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #dustbin-list li:hover {
+            background-color: #e0e0e0;
+        }
+
+        .popup-content button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #ff5722;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .popup-content button:hover {
+            background-color: #d32f2f;
+        }
+
+        #zoom-out-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #00796b;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #zoom-out-btn:hover {
+            background-color: #004d40;
+        }
+
+        /* Hover Text Styling */
+        .hover-text {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .highlight {
+            background-color: #e0e0e0;
+        }
+
+
+
+        #notification-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#notification-popup-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 90%;
+}
+
+#high-fill-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+#high-fill-list li {
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+
+
+
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>SmartBin - Waste Management</h1>
+</header>
+
+<nav>
+    <a href="#home">Home</a>
+    <a href="#about">About Us</a>
+    <a href="#contact">Contact Us</a>
+</nav>
+
+<div id="home" class="container">
+    <div class="hero">
+        <h2>Welcome to SmartBin</h2>
+        <p>Monitor and manage waste levels in real-time for a cleaner and greener environment.</p>
+        <button id="live-monitor-btn">Live Monitoring</button>
+    </div>
+</div>
+
+<div id="about" class="container">
+    <section>
+        <h2>About Us</h2>
+        <p>SmartBin is a cutting-edge solution for waste management that allows you to monitor waste levels in real-time, ensuring better waste management practices. With real-time updates, you can ensure your dustbins are always efficiently cleaned!</p>
+    </section>
+</div>
+
+<div id="contact" class="container">
+    <section>
+        <h2>Contact Us</h2>
+        <p>For any inquiries, support, or feedback, feel free to get in touch with us!</p>
+        <p>Email: support@smartbin.com</p>
+        <p>Phone: +1 234-567-890</p>
+    </section>
+</div>
+
+<footer>
+    <p>&copy; 2024 SmartBin. All Rights Reserved.</p>
+</footer>
+
+<!-- Live Monitoring Popup Modal -->
+<div class="popup-overlay" id="popup-overlay">
+    <div class="popup-content" id="popup-content">
+        <div id="map"></div>
+        <ul id="dustbin-list"></ul>
+        <button id="close-popup">Close</button>
+    </div>
+</div>
+<!-- this one also triel -->
+<div class="popup-overlay" id="notification-popup-overlay">
+    <div class="popup-content" id="notification-popup-content">
+        <h2>Dustbins with High Fill Levels</h2>
+        <ul id="high-fill-list"></ul>
+        <button id="close-notification-popup">Close</button>
+    </div>
+</div>
+<button id="send-notification-btn">Send Notification</button>
+
+
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA98BsTxR_b23SSonpa8AZ3b1wDaFIZkAw&callback=initMap&v=beta&libraries=marker" async defer></script>
+
+<script>
+let map;
+let markers = [];
+let fillLevels = {};
+let dustbins = [];
+let hoverText = null;
+const numberOfDustbins = 100;
+
+function generateDustbins() {
+    for (let i = 0; i < numberOfDustbins; i++) {
+        let lat = 28.5500 + (Math.random() * 0.1); // Random latitude in Delhi's approximate range
+        let lng = 77.1000 + (Math.random() * 0.1); // Random longitude in Delhi's approximate range
+        let nearbyLocation = `Near Market Area ${Math.floor(Math.random() * 10) + 1}`; // Example nearby location
+        dustbins.push({ id: i + 1, lat, lng, name: `Dustbin ${i + 1}`, location: nearbyLocation });
+    }
+}
+
+function generateFillLevels() {
+    dustbins.forEach(dustbin => {
+        fillLevels[dustbin.id] = Math.floor(Math.random() * 101); // Random fill percentage (0 to 100)
+    });
+}
+
+function initMap() {
+    generateDustbins();
+    generateFillLevels();
+
+    const mapCenter = { lat: 28.6139, lng: 77.2090 }; // Center on Delhi (India Gate)
+
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: mapCenter,
+        zoom: 13,
+    });
+
+    hoverText = document.createElement('div');
+    hoverText.className = 'hover-text';
+    document.body.appendChild(hoverText);
+
+    dustbins.forEach(dustbin => {
+        const fillLevel = fillLevels[dustbin.id];
+
+        let iconUrl = fillLevel < 70 
+            ? 'https://cdn-icons-png.freepik.com/256/8079/8079796.png?ga=GA1.1.2025384137.1729537570&semt=ais_hybrid' 
+            : 'https://cdn-icons-png.freepik.com/256/17509/17509145.png?ga=GA1.1.2025384137.1729537570&semt=ais_hybrid';
+
+        let iconSize = { width: 40, height: 40 };
+        if (fillLevel === 100) {
+            iconSize = { width: 50, height: 50 };
+        }
+
+        const marker = new google.maps.Marker({
+            position: { lat: dustbin.lat, lng: dustbin.lng },
+            map: map,
+            title: dustbin.name,
+            icon: {
+                url: iconUrl,
+                scaledSize: new google.maps.Size(iconSize.width, iconSize.height),
+                labelOrigin: new google.maps.Point(20, -10)
+            },
+            zIndex: fillLevel === 100 ? 2 : 1
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <h3>${dustbin.name}</h3>
+                <p>Fill level: ${fillLevel}%</p>
+                <p>Location: ${dustbin.location}</p>
+            `
+        });
+
+        marker.addListener('click', () => {
+            if (lastOpenedInfoWindow) {
+                lastOpenedInfoWindow.close();
+            }
+            infoWindow.open(map, marker);
+            lastOpenedInfoWindow = infoWindow;
+        });
+
+        marker.infoWindow = infoWindow;
+        markers.push(marker);
+    });
+
+
+    document.getElementById("live-monitor-btn").addEventListener('click', openLiveMonitoring);
+    document.getElementById("close-popup").addEventListener('click', closePopup);
+
+    // Handle Zoom In (Click) and Zoom Out (Double Click) functionality
+    google.maps.event.addListener(map, 'click', function () {
+        let currentZoom = map.getZoom();
+        map.setZoom(currentZoom + 1); // Zoom In on Click
+    });
+
+    google.maps.event.addListener(map, 'dblclick', function () {
+        let currentZoom = map.getZoom();
+        map.setZoom(currentZoom - 1); // Zoom Out on Double Click
+    });
+
+    // Populate the dustbin list
+    dustbins.forEach(dustbin => {
+        const li = document.createElement("li");
+        li.textContent = `${dustbin.name} - ${fillLevels[dustbin.id]}%`;
+        li.style.color = fillLevels[dustbin.id] > 70 ? 'red' : 'green';
+        li.addEventListener('click', () => showDetails(dustbin.id));
+        document.getElementById("dustbin-list").appendChild(li);
+    });
+}
+
+function showDetails(dustbinId) {
+    const dustbin = dustbins.find(d => d.id === dustbinId);
+    const marker = markers.find(m => m.title === dustbin.name);
+    if (!dustbin || !marker) return;
+
+    const previousDetails = document.querySelector('.highlight');
+    if (previousDetails) {
+        previousDetails.classList.remove('highlight');
+    }
+    const detailsElement = document.querySelector(`#dustbin-list li:nth-child(${dustbinId})`);
+    if (detailsElement) {
+        detailsElement.classList.add('highlight');
+    }
+
+    // Pan to marker and zoom in
+    map.panTo(marker.getPosition());
+    map.setZoom(16);
+
+    // Optional: Open info window
+    markers.forEach(m => m.infoWindow?.close());
+    const infoWindow = new google.maps.InfoWindow({
+        content: `
+            <h3>${dustbin.name}</h3>
+            <p>Fill level: ${fillLevels[dustbinId]}%</p>
+            <p>Location: Nearby landmark information here</p>
+        `
+    });
+    infoWindow.open(map, marker);
+    marker.infoWindow = infoWindow;
+}
+
+function openLiveMonitoring() {
+    document.getElementById("popup-overlay").style.display = "flex";
+}
+
+function closePopup() {
+    document.getElementById("popup-overlay").style.display = "none";
+}
+
+window.initMap = initMap;
+
+
+
+//there is triel code from here
+
+let lastOpenedInfoWindow = null;
+
+function initMap() {
+    generateDustbins();
+    generateFillLevels();
+
+    // Set default map center
+    const mapCenter = { lat: 28.5500, lng: 77.1000 };
+
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: mapCenter,
+        zoom: 13,
+    });
+
+    hoverText = document.createElement('div');
+    hoverText.className = 'hover-text';
+    document.body.appendChild(hoverText);
+
+    dustbins.forEach(dustbin => {
+        const fillLevel = fillLevels[dustbin.id];
+
+        let iconUrl = fillLevel < 70 
+            ? 'https://cdn-icons-png.freepik.com/256/8079/8079796.png?ga=GA1.1.2025384137.1729537570&semt=ais_hybrid' 
+            : 'https://cdn-icons-png.freepik.com/256/17509/17509145.png?ga=GA1.1.2025384137.1729537570&semt=ais_hybrid';
+
+        let iconSize = { width: 40, height: 40 }; // Default size
+        if (fillLevel === 100) {
+            iconSize = { width: 50, height: 50 }; // Increase size by 10%
+            iconUrl = 'https://cdn-icons-png.freepik.com/256/17509/17509145.png?ga=GA1.1.2025384137.1729537570&semt=ais_hybrid'; // Same red icon
+        }
+
+        const marker = new google.maps.Marker({
+            position: { lat: dustbin.lat, lng: dustbin.lng },
+            map: map,
+            title: dustbin.name,
+            icon: {
+                url: iconUrl,
+                scaledSize: new google.maps.Size(iconSize.width, iconSize.height),
+                labelOrigin: new google.maps.Point(20, -10)
+            },
+            zIndex: fillLevel === 100 ? 2 : 1
+        });
+
+        // InfoWindow on marker click
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+            <h3>${dustbin.name}</h3>
+            <p>Fill level: ${fillLevel}%</p>
+            <p>Location: ${dustbin.location}</p>
+                `
+        });
+
+        marker.addListener('click', () => {
+            if (lastOpenedInfoWindow) {
+                lastOpenedInfoWindow.close();
+            }
+            infoWindow.open(map, marker);
+            lastOpenedInfoWindow = infoWindow;
+        });
+
+        marker.infoWindow = infoWindow;
+        markers.push(marker);
+    });
+
+    document.getElementById("live-monitor-btn").addEventListener('click', openLiveMonitoring);
+    document.getElementById("close-popup").addEventListener('click', closePopup);
+    document.getElementById("close-notification-popup").addEventListener('click', closeNotificationPopup);
+    document.getElementById("send-notification-btn").addEventListener('click', sendNotification);
+
+    // Handle Zoom In (Click) and Zoom Out (Double Click) functionality
+    google.maps.event.addListener(map, 'click', function () {
+        let currentZoom = map.getZoom();
+        map.setZoom(currentZoom + 1); // Zoom In on Click
+    });
+
+    google.maps.event.addListener(map, 'dblclick', function () {
+        let currentZoom = map.getZoom();
+        map.setZoom(currentZoom - 1); // Zoom Out on Double Click
+    });
+
+    // Populate the dustbin list
+    dustbins.forEach(dustbin => {
+        const li = document.createElement("li");
+        li.textContent = `${dustbin.name} - ${fillLevels[dustbin.id]}%`;
+        li.style.color = fillLevels[dustbin.id] > 70 ? 'red' : 'green';
+        li.addEventListener('click', () => showDetails(dustbin.id));
+        document.getElementById("dustbin-list").appendChild(li);
+    });
+}
+
+function sendNotification() {
+    const highFillDustbins = dustbins.filter(dustbin => fillLevels[dustbin.id] > 80);
+
+    // Populate the list of high fill dustbins
+    const highFillList = document.getElementById("high-fill-list");
+    highFillList.innerHTML = ''; // Clear any existing list items
+
+    highFillDustbins.forEach(dustbin => {
+        const li = document.createElement("li");
+        li.textContent = `${dustbin.name} - Fill Level: ${fillLevels[dustbin.id]}%`;
+        highFillList.appendChild(li);
+    });
+
+    // Show the notification popup
+    document.getElementById("notification-popup-overlay").style.display = "flex";
+}
+
+function closeNotificationPopup() {
+    document.getElementById("notification-popup-overlay").style.display = "none";
+}
+
+function openLiveMonitoring() {
+    document.getElementById("popup-overlay").style.display = "flex";
+}
+
+function closePopup() {
+    document.getElementById("popup-overlay").style.display = "none";
+}
+
+//new locqtion update
+
+function generateDustbins() {
+    const locations = [
+        { lat: 28.6139, lng: 77.2090, nearby: "India Gate" },
+        { lat: 28.6127, lng: 77.2773, nearby: "Akshardham Temple" },
+        { lat: 28.6562, lng: 77.2410, nearby: "Red Fort" },
+        { lat: 28.5244, lng: 77.1855, nearby: "Qutub Minar" },
+        { lat: 28.6134, lng: 77.2295, nearby: "Rashtrapati Bhavan" },
+        { lat: 28.7041, lng: 77.1025, nearby: "Connaught Place" },
+        { lat: 28.5672, lng: 77.2100, nearby: "Lotus Temple" },
+        { lat: 28.5011, lng: 77.1629, nearby: "Hauz Khas Village" },
+        { lat: 28.6084, lng: 77.2270, nearby: "Jantar Mantar" },
+        { lat: 28.6093, lng: 77.0369, nearby: "Indira Gandhi Airport" }
+    ];
+
+    for (let i = 0; i < numberOfDustbins; i++) {
+        const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+        const latOffset = (Math.random() - 0.5) * 0.01; // Small offset for variety
+        const lngOffset = (Math.random() - 0.5) * 0.01; // Small offset for variety
+
+        const lat = randomLocation.lat + latOffset;
+        const lng = randomLocation.lng + lngOffset;
+
+        dustbins.push({
+            id: i + 1,
+            lat,
+            lng,
+            name: `Dustbin ${i + 1}`,
+            location: randomLocation.nearby
+        });
+    }
+}
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
