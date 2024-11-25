@@ -418,7 +418,7 @@ function initMap() {
     });
 }
 
-function showDetails(dustbinId) {
+function showDetails(dustbinId, action = 'click') {
     const dustbin = dustbins.find(d => d.id === dustbinId);
     const marker = markers.find(m => m.title === dustbin.name);
     if (!dustbin || !marker) return;
@@ -432,22 +432,19 @@ function showDetails(dustbinId) {
         detailsElement.classList.add('highlight');
     }
 
-    // Pan to marker and zoom in
+    // Pan to marker and adjust zoom based on the action
     map.panTo(marker.getPosition());
-    map.setZoom(16);
+    if (action === 'click') {
+        map.setZoom(16); // Zoom in on single click
+    } else if (action === 'dblclick') {
+        map.setZoom(map.getZoom() - 2); // Zoom out on double click
+    }
 
-    // Optional: Open info window
+    // Open info window for the marker
     markers.forEach(m => m.infoWindow?.close());
-    const infoWindow = new google.maps.InfoWindow({
-        content: `
-            <h3>${dustbin.name}</h3>
-            <p>Fill level: ${fillLevels[dustbinId]}%</p>
-            <p>Location: Nearby landmark information here</p>
-        `
-    });
-    infoWindow.open(map, marker);
-    marker.infoWindow = infoWindow;
+    marker.infoWindow.open(map, marker);
 }
+
 
 function openLiveMonitoring() {
     document.getElementById("popup-overlay").style.display = "flex";
@@ -548,9 +545,17 @@ function initMap() {
         const li = document.createElement("li");
         li.textContent = `${dustbin.name} - ${fillLevels[dustbin.id]}%`;
         li.style.color = fillLevels[dustbin.id] > 70 ? 'red' : 'green';
-        li.addEventListener('click', () => showDetails(dustbin.id));
-        document.getElementById("dustbin-list").appendChild(li);
+
+        // Add click and double-click event listeners
+        li.addEventListener('click', () => showDetails(dustbin.id, 'click'));
+        li.addEventListener('dblclick', (e) => {
+        e.stopPropagation(); // Prevent triggering the click event
+        showDetails(dustbin.id, 'dblclick');
+        });
+
+     document.getElementById("dustbin-list").appendChild(li);
     });
+
 }
 
 function sendNotification() {
@@ -585,36 +590,53 @@ function closePopup() {
 //new locqtion update
 
 function generateDustbins() {
-    const locations = [
+    const clusterCenters = [
         { lat: 28.6139, lng: 77.2090, nearby: "India Gate" },
         { lat: 28.6127, lng: 77.2773, nearby: "Akshardham Temple" },
         { lat: 28.6562, lng: 77.2410, nearby: "Red Fort" },
         { lat: 28.5244, lng: 77.1855, nearby: "Qutub Minar" },
-        { lat: 28.6134, lng: 77.2295, nearby: "Rashtrapati Bhavan" },
-        { lat: 28.7041, lng: 77.1025, nearby: "Connaught Place" },
-        { lat: 28.5672, lng: 77.2100, nearby: "Lotus Temple" },
-        { lat: 28.5011, lng: 77.1629, nearby: "Hauz Khas Village" },
-        { lat: 28.6084, lng: 77.2270, nearby: "Jantar Mantar" },
-        { lat: 28.6093, lng: 77.0369, nearby: "Indira Gandhi Airport" }
+        { lat: 28.7041, lng: 77.1025, nearby: "Connaught Place" }
     ];
 
-    for (let i = 0; i < numberOfDustbins; i++) {
-        const randomLocation = locations[Math.floor(Math.random() * locations.length)];
-        const latOffset = (Math.random() - 0.5) * 0.01; // Small offset for variety
-        const lngOffset = (Math.random() - 0.5) * 0.01; // Small offset for variety
+    let dustbinCount = 0;
 
-        const lat = randomLocation.lat + latOffset;
-        const lng = randomLocation.lng + lngOffset;
+    clusterCenters.forEach(center => {
+        const clusterSize = Math.floor(numberOfDustbins / clusterCenters.length); // Equal distribution
+        const radius = 0.01; // Approx 1 km in latitude/longitude
+
+        for (let i = 0; i < clusterSize; i++) {
+            const angle = Math.random() * 2 * Math.PI; // Random angle
+            const distance = Math.random() * radius; // Random distance within radius
+
+            const lat = center.lat + distance * Math.cos(angle);
+            const lng = center.lng + distance * Math.sin(angle);
+
+            dustbins.push({
+                id: ++dustbinCount,
+                lat,
+                lng,
+                name: `Dustbin ${dustbinCount}`,
+                location: center.nearby
+            });
+        }
+    });
+
+    // If any dustbins remain, distribute them randomly
+    while (dustbinCount < numberOfDustbins) {
+        const randomCenter = clusterCenters[Math.floor(Math.random() * clusterCenters.length)];
+        const randomAngle = Math.random() * 2 * Math.PI;
+        const randomDistance = Math.random() * 0.01;
 
         dustbins.push({
-            id: i + 1,
-            lat,
-            lng,
-            name: `Dustbin ${i + 1}`,
-            location: randomLocation.nearby
+            id: ++dustbinCount,
+            lat: randomCenter.lat + randomDistance * Math.cos(randomAngle),
+            lng: randomCenter.lng + randomDistance * Math.sin(randomAngle),
+            name: `Dustbin ${dustbinCount}`,
+            location: randomCenter.nearby
         });
     }
 }
+
 
 
 
